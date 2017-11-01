@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html class="no-js">
+<head>
+    <meta charset="utf-8">
+    <title>ARS - Dispatch Dashboard</title>
+    <meta name="description" content="Dispatch dashboard">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+<!--    <script type="text/javascript" src="//ajax.aspnetcdn.com/ajax/4.0/1/MicrosoftAjax.js"></script>-->
+    <!-- Place favicon.ico and apple-touch-icon.png in the root directory -->
+
+    <link rel="stylesheet" href="styles/main.css">
+</head>
+<body>
+    <div id="loadingDiv"></div>
+
+    <div class="alert alert-danger error-box announcement" role="alert">
+        <span
+            class="glyphicon glyphicon-exclamation-sign"
+            aria-hidden="true"></span>
+        <span class="error-text"></span>
+        <div class="help-block with-errors"></div>
+    </div>
+
+    <div class="alert alert-success info-box announcement" role="alert">
+        <span class="message-text"></span>
+    </div>
+
+    <div class="calendar ui-layout-center">
+        <ul id="technicians" class="ui-selectable"></ul>
+        <div id="calendar"></div>
+    </div>
+
+    <div id="map" class="map ui-layout-east"></div>
+
+    <div id="workOrders" class="orders ui-layout-west">
+        <div class="btn-group">
+            <button type="button"
+                    class="btn btn-default dropdown-toggle"
+                    data-toggle="dropdown"
+                    aria-expanded="false">
+
+                <span class="glyphicon glyphicon-sort"
+                      aria-hidden="true"></span>
+
+                <span class="order-title">Unassigned</span>
+                <span class="caret"></span>
+            </button>
+
+            <ul class="dropdown-menu order-filter" role="menu">
+
+                <li id="Unassigned" class="active">
+                    <a href="#">Unassigned</a>
+                </li>
+
+                <li id="Pending"><a href="#">Pending</a></li>
+                <li id="In Progress"><a href="#">In Progress</a></li>
+                <li id="Return - Need to Quote"><a href="#">Return - Quote</a></li>
+                <li id="Return - Need for Parts"><a href="#">Return - Parts</a></li>
+                <li id="Need to Quote - General"><a href='#'>Need to Quote - General</a></li>
+                <li id="Need to Quote - Electrical"><a href='#'>Need to Quote - Electrical</a></li>
+                <li id="Need to Quote - Plumbing"><a href='#'>Need to Quote - Plumbing</a></li>
+                <li id="Recall"><a href="#">Recall</a></li>
+                <li id="Work Complete"><a href="#">Work Complete</a></li>
+                <li id="All"><a href="#">All</a></li>
+            </ul>
+        </div>
+
+        <button type="button"
+                class="btn btn-primary btn-block"
+                id="sortByTechDistance"
+                title="Sort work orders by distance to the selected technician"
+                data-action="sort-by-technician"
+                style="color:white; background-color: #A94442; border-color: white;">
+            Sort Work Order
+        </button>
+
+        <ul class="list-group list-group-item"></ul>
+        <div class="loadmore">
+            <img src="images/progress.gif" />
+            <div class="nomore" style="display: none;">
+                No more posts to show.
+            </div>
+        </div>
+    </div>
+
+    <div class="ui-layout-north" style="overflow: visible;">
+        <h1></h1>
+
+        <div class="form-inline" style="padding-left: 13px;">
+
+            <div class="form-group form-group-sm">
+                <select
+                    id="regions"
+                    class="region-filter"
+                    role="menu"
+                    multiple="multiple"
+                    name="regions"></select>
+            </div>
+
+            <div class="checkbox form-group-sm">
+                <label>
+                    <input type="checkbox" id="allUsers" /> All Users
+                </label>
+            </div>
+
+            <div class="form-group">
+                <label for="search" class="sr-only">Search</label>
+                <div class="input-group input-group-sm">
+                    <input
+                        type="text"
+                        id="search"
+                        name="search"
+                        class="form-control"
+                        placeholder="Search" />
+
+                    <span class="input-group-btn">
+                        <button type="button" class="btn btn-default">
+                            <span
+                                class="glyphicon glyphicon-search"
+                                aria-hidden="true"></span>
+
+                            <span class="sr-only">Search</span>
+                        </button>
+                    </span>
+                </div>
+            </div>
+
+            <button
+                type="button"
+                class="btn btn-default btn-sm"
+                title="Sort technicians by distance to the selected work order"
+                data-action="sort-by-order"
+                style="color:white; background-color:#A94442; border-color:white; letter-spacing:.01em;">
+                Sort Technicians
+            </button>
+
+            <div class="form-group">
+                <div class="now-showing">
+                    This label is populated by JavaScript.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="ui-layout-south footer">
+        <h2>Work Order Details</h2>
+        <p>Select a Work Order to view details.</p>
+    </div>
+
+    <div class="template">
+        <script type="text/x-template" id="workOrderTemplate">
+            <li
+                class="work-order {{isEmergencyFormatted}}"
+                data-work-order-id="{{workOrderId}}"
+                data-work-order-address="{{addressComposite}}"
+                data-work-order-complete-by-date="{{completeByDate}}"
+                data-work-order-distance="{{distance}}"
+                data-work-order-description="{{description}}"
+                data-work-order-url="{{url}}"
+                data-work-order-is-emergency="{{isEmergency}}"
+                data-work-order-lat-lng="{{latLng}}"
+                data-work-order-scheduling-complete="{{schedulingComplete}}"
+                data-work-order-status="{{status}}"
+                data-work-order-ticket-number="{{ticketNumber}}"
+                data-work-order-title="{{title}}"
+                data-work-order-location-name="{{locationName}}"
+                data-work-order-time-zone="{{timeZone}}"
+                data-work-order-po-number="{{po}}"
+                data-work-order-technician="{{technician}}"
+                data-duration='03:00'>
+                <div id="{{workOrderId}}">
+                    <p>{{ticketNumber}}</p>
+                    <p>{{locationName}}</p>
+                    <p>{{completeByDateFormatted}}</p>
+                    <p>{{addressComposite}}</p>
+                    <p class="distance">{{distanceFormatted}}</p>
+                </div>
+            </li>
+        </script>
+
+        <script type="text/x-template" id="workOrderDetailsTemplate">
+            <div data-work-order-id="{{workOrderId}}">
+                	<p><a href="{{url}}" target="_blank">{{ticketNumber}}</a> - {{status}} - {{technician}}</p>
+                	<p> PO #: {{po}} </p>
+                	<p> {{locationName}} --- {{addressComposite}} </p>
+                	<p> {{description}} </p>
+            </div>
+        </script>
+        <script type="text/x-template" id="technicianTemplate">
+            <li data-technician-id="{{technicianId}}">
+                <span>{{name}}</span>
+                <span>{{trade}}</span>
+            </li>
+        </script>
+        <script type="text/x-template" id="regionTemplate">
+            <option
+                data-region-id="{{regionId}}"
+                id="{{regionId}}"
+                value="{{regionId}}">{{name}}</option>
+        </script>
+    </div>
+    <script src="scripts/vendor.js"></script>
+    <script src="scripts/plugins.js"></script>
+    <script src="scripts/main.js"></script>
+    <script type="text/javascript">
+        document.write('<script type="text/javascript" src="' + (location.protocol === "file:" ? "http:" : location.protocol) + '//ecn.dev.virtualearth.net/mapcontrol/mapcontrol.ashx?v=7.0&s=1"></' + 'script>');
+    </script>
+</body>
+</html>
